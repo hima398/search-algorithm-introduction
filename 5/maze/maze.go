@@ -93,6 +93,26 @@ func (a *AlternateMazeState) GetWinningStatus() WinningStatus {
 	}
 }
 
+// プレイヤー視点の盤面評価をする
+func (a *AlternateMazeState) GetScore() int {
+	return a.characters[0].score - a.characters[1].score
+}
+
+// 内容をコピーしたインスタンスを作成する
+func (a *AlternateMazeState) Copy() *AlternateMazeState {
+	res := new(AlternateMazeState)
+	for _, c := range a.characters {
+		res.characters = append(res.characters, c)
+	}
+	for i := range a.points {
+		for j := range a.points[i] {
+			res.points[i][j] = a.points[i][j]
+		}
+	}
+	res.turn = a.turn
+	return res
+}
+
 // 現在のゲーム状況を文字列にする
 func (a *AlternateMazeState) String() string {
 	res := fmt.Sprintf("\nturn:\t%d\n", a.turn)

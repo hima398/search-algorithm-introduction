@@ -6,12 +6,10 @@ import (
 	"strings"
 
 	"github.com/hima398/search-algorithm-introduction/5/maze"
+	"github.com/hima398/search-algorithm-introduction/5/solver"
 )
 
-func randomAction(rd *rand.Rand, maze *maze.AlternateMazeState) int {
-	legalActions := maze.LegalActions()
-	return legalActions[rand.Intn(len(legalActions))]
-}
+var w1, w2 int
 
 func playGame(seed int) {
 	rd := rand.New(rand.NewSource(int64(seed)))
@@ -19,9 +17,10 @@ func playGame(seed int) {
 	for !state.IsDone() {
 		// 1P
 		{
-			fmt.Println("1p " + strings.Repeat("-", 28))
+			fmt.Println("1p " + strings.Repeat("-", 40))
 
-			action := randomAction(rd, state)
+			//action := miniMaxAction(state, maze.EndTurn)
+			action := solver.AlphaBetaAction(state, maze.EndTurn)
 			fmt.Printf("action: %d\n", action)
 			state.Advance(action)
 			fmt.Printf("state: %v\n", state)
@@ -30,8 +29,10 @@ func playGame(seed int) {
 				switch state.GetWinningStatus() {
 				case maze.Win:
 					fmt.Println("winner: 2p")
+					w2++
 				case maze.Lose:
 					fmt.Println("winner: 1p")
+					w1++
 				default:
 					fmt.Println("Draw")
 				}
@@ -41,9 +42,10 @@ func playGame(seed int) {
 
 		// 2P
 		{
-			fmt.Println("2p " + strings.Repeat("-", 28))
+			fmt.Println("2p " + strings.Repeat("-", 40))
 
-			action := randomAction(rd, state)
+			//action := randomAction(rd, state)
+			action := solver.MiniMaxAction(state, maze.EndTurn)
 			fmt.Printf("action: %d\n", action)
 			state.Advance(action)
 			fmt.Printf("state: %v\n", state)
@@ -52,8 +54,10 @@ func playGame(seed int) {
 				switch state.GetWinningStatus() {
 				case maze.Win:
 					fmt.Println("winner: 1p")
+					w1++
 				case maze.Lose:
 					fmt.Println("winner: 2p")
+					w2++
 				default:
 					fmt.Println("Draw")
 				}
@@ -64,5 +68,8 @@ func playGame(seed int) {
 }
 
 func main() {
-	playGame(1)
+	for seed := 0; seed < int(1e5); seed++ {
+		playGame(seed)
+	}
+	fmt.Println(float64(w1*100) / 1e5)
 }
