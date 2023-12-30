@@ -11,12 +11,12 @@ type Character struct {
 	score int
 }
 
-const Height = 3
-const Width = 3
-const EndTurn = 4
+const Height = 5
+const Width = 5
+const EndTurn = 10
 
-var dx = []int{-1, 0, 1, 0}
-var dy = []int{0, -1, 0, 1}
+var dx = []int{1, -1, 0, 0}
+var dy = []int{0, 0, 1, -1}
 
 type AlternateMazeState struct {
 	points     [Height][Width]int
@@ -24,7 +24,8 @@ type AlternateMazeState struct {
 	characters []Character
 }
 
-func New(rd *rand.Rand) *AlternateMazeState {
+func New(seed int) *AlternateMazeState {
+	generator := rand.New(rand.NewSource(int64(seed)))
 	res := new(AlternateMazeState)
 	res.characters = []Character{{Height / 2, Width/2 - 1, 0}, {Height / 2, Width/2 + 1, 0}}
 	for y := 0; y < Height; y++ {
@@ -35,7 +36,7 @@ func New(rd *rand.Rand) *AlternateMazeState {
 			if y == res.characters[1].y && x == res.characters[1].x {
 				continue
 			}
-			res.points[y][x] = rd.Intn(10)
+			res.points[y][x] = generator.Intn(10)
 		}
 	}
 	return res
@@ -48,6 +49,11 @@ func (a *AlternateMazeState) IsDone() bool {
 
 // ゲームを1ターン進める
 func (a *AlternateMazeState) Advance(action int) {
+	if action < 0 {
+		fmt.Println("!!!Warning!!!")
+		fmt.Println(action)
+		fmt.Println(a)
+	}
 	a.characters[0].x += dx[action]
 	a.characters[0].y += dy[action]
 	a.characters[0].score += a.points[a.characters[0].y][a.characters[0].x]
@@ -113,6 +119,26 @@ func (a *AlternateMazeState) Copy() *AlternateMazeState {
 	return res
 }
 
+// 先手プレイヤーの勝率計算のためのスコアを計算する
+func (a *AlternateMazeState) GetFirstPlayerScoreForWinRate() float64 {
+	switch a.GetWinningStatus() {
+	case Win:
+		if a.isFirstPlayer() {
+			return 1
+		} else {
+			return 0
+		}
+	case Lose:
+		if a.isFirstPlayer() {
+			return 0
+		} else {
+			return 1
+		}
+	default:
+		return 0.5
+	}
+}
+
 // 現在のゲーム状況を文字列にする
 func (a *AlternateMazeState) String() string {
 	res := fmt.Sprintf("\nturn:\t%d\n", a.turn)
@@ -155,4 +181,9 @@ func (a *AlternateMazeState) String() string {
 		res += "\n"
 	}
 	return res
+}
+
+// 現在のプレイヤーが先手であるか判定する
+func (a *AlternateMazeState) isFirstPlayer() bool {
+	return a.turn%2 == 0
 }
